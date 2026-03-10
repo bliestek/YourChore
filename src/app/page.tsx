@@ -64,6 +64,13 @@ export default function Home() {
         </button>
 
         <button
+          onClick={() => router.push("/join")}
+          className="btn-kid bg-green-400 text-green-900 hover:bg-green-300 text-center"
+        >
+          Join a Family 👨‍👩‍👧‍👦
+        </button>
+
+        <button
           onClick={() => router.push("/register")}
           className="text-white/80 hover:text-white font-display font-semibold text-lg transition-colors mt-4"
         >

@@ -43,6 +43,7 @@ export default function SettingsPage() {
   const [savingName, setSavingName] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
@@ -296,6 +297,21 @@ export default function SettingsPage() {
                   )}
                 </button>
               </div>
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/join?code=${family.inviteCode}`;
+                  navigator.clipboard.writeText(url);
+                  setCopiedLink(true);
+                  toast.success("Invite link copied!");
+                  setTimeout(() => setCopiedLink(false), 2000);
+                }}
+                className="mt-2 text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                {copiedLink ? "Link copied!" : "Copy invite link to share"}
+              </button>
             </div>
 
             {/* Members list */}

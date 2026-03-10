@@ -30,7 +30,12 @@ export async function DELETE(
       return unauthorized();
     }
 
-    await prisma.choreAssignment.delete({ where: { id } });
+    // Soft-delete: set status to "dismissed" instead of hard-deleting.
+    // This prevents auto-generate from recreating the assignment.
+    await prisma.choreAssignment.update({
+      where: { id },
+      data: { status: "dismissed" },
+    });
 
     return success({ message: "Assignment removed" });
   } catch (e) {

@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
 
   if (status) {
     where.status = status;
+  } else {
+    // Always exclude dismissed assignments unless a specific status is requested
+    where.status = { not: "dismissed" };
   }
 
   // Default: show today's assignments
