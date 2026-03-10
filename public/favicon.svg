@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f6ef7"/>
+      <stop offset="100%" style="stop-color:#7c5cf2"/>
+    </linearGradient>
+    <linearGradient id="star-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="100" height="100" rx="22" fill="url(#bg)"/>
+  <!-- Star shape -->
+  <path d="M50 16 L58.5 38.5 L82 38.5 L63 52.5 L70 76 L50 62 L30 76 L37 52.5 L18 38.5 L41.5 38.5 Z" fill="url(#star-fill)"/>
+  <!-- Checkmark inside star -->
+  <path d="M38 50 L46 58 L62 40" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+  }
+
+  .dark {
+    --background: 15 23 42;
+    --foreground: 248 250 252;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-xl
+           transition-all duration-200 active:scale-95 shadow-md hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl
+           transition-all duration-200 active:scale-95;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl
+           transition-all duration-200 active:scale-95;
+  }
+
+  .btn-kid {
+    @apply font-display font-bold py-4 px-6 rounded-2xl text-xl
+           transition-all duration-200 active:scale-90 shadow-lg hover:shadow-xl
+           touch-manipulation;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-md p-6 transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-400
+           focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-200;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-600 mb-1;
+  }
+
+  /* Star jar glass effect */
+  .star-jar {
+    @apply relative overflow-hidden rounded-3xl;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border: 3px solid rgba(255,215,0,0.3);
+    box-shadow:
+      inset 0 0 30px rgba(255,255,255,0.1),
+      0 0 15px rgba(255,215,0,0.2);
+  }
+
+  .star-jar-fill {
+    @apply absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-out;
+    background: linear-gradient(
+      to top,
+      rgba(255, 215, 0, 0.4),
+      rgba(255, 215, 0, 0.2),
+      transparent
+    );
+  }
+
+  /* Kid-friendly large touch targets */
+  .touch-target {
+    @apply min-h-[56px] min-w-[56px] flex items-center justify-center;
+  }
+}
+
+/* Celebration particles */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-particle {
+  position: fixed;
+  animation: confetti-fall 3s ease-out forwards;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}

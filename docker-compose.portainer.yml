@@ -1,0 +1,30 @@
+## YourChore - Portainer Stack Deployment
+## Copy this into Portainer > Stacks > Add Stack > Web Editor
+## Update the environment variables below before deploying!
+
+services:
+  yourchore:
+    image: yourchore:latest
+    container_name: yourchore
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./data/yourchore.db
+      - JWT_SECRET=CHANGE_ME_TO_A_RANDOM_SECRET_AT_LEAST_32_CHARS
+      - NEXT_PUBLIC_APP_NAME=YourChore
+      - NEXT_PUBLIC_APP_URL=http://YOUR_SERVER_IP:3000
+      - REQUIRE_APPROVAL=false
+      - SEED_ON_STARTUP=true
+    volumes:
+      - yourchore_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/auth/me"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  yourchore_data:
+    driver: local

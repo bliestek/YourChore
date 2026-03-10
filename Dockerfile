@@ -1,0 +1,76 @@
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci || npm install
+
+# Build the application
+FROM base AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Create data directory for SQLite (build-time only, for prisma generate)
+RUN mkdir -p /app/data
+
+# Generate Prisma client and build Next.js
+# NOTE: prisma db push is NOT run here — it runs at container startup via entrypoint
+ENV DATABASE_URL="file:./data/yourchore.db"
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npx prisma generate
+RUN npx next build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="file:./data/yourchore.db"
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy public assets
+COPY --from=builder /app/public ./public
+
+# Copy standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy Prisma files for runtime (client + schema for db push at startup)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+
+# Copy prisma CLI for db push at startup
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+
+# Copy seed script dependencies
+COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
+COPY --from=builder /app/node_modules/esbuild ./node_modules/esbuild
+COPY --from=builder /app/node_modules/@esbuild ./node_modules/@esbuild
+COPY --from=builder /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
+COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
+# Copy entrypoint script
+COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
+
+# Create data directory with correct permissions
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Use entrypoint to handle DB initialization, then start the server
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]

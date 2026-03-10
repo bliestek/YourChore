@@ -1,0 +1,29 @@
+services:
+  yourchore:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yourchore:latest
+    container_name: yourchore
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=file:./data/yourchore.db
+      - JWT_SECRET=${JWT_SECRET:-change-this-to-a-random-secret-at-least-32-characters}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-YourChore}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - REQUIRE_APPROVAL=${REQUIRE_APPROVAL:-false}
+      - SEED_ON_STARTUP=${SEED_ON_STARTUP:-false}
+    volumes:
+      - yourchore_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/auth/me"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  yourchore_data:
+    driver: local

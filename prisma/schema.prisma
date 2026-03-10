@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Family {
+  id         String   @id @default(cuid())
+  name       String   @default("My Family")
+  inviteCode          String   @unique @map("invite_code")
+  autoGenerateChores  Boolean  @default(true) @map("auto_generate_chores")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  members  FamilyMember[]
+  children Child[]
+  chores   Chore[]
+  rewards  Reward[]
+
+  @@map("families")
+}
+
+model FamilyMember {
+  id       String   @id @default(cuid())
+  userId   String   @map("user_id")
+  familyId String   @map("family_id")
+  role     String   @default("admin") // "admin" (creator), "member"
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, familyId])
+  @@map("family_members")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  role         String   @default("parent") // "parent"
+  darkMode     Boolean  @default(false) @map("dark_mode")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  children          Child[]
+  chores            Chore[]
+  rewards           Reward[]
+  familyMemberships FamilyMember[]
+
+  @@map("users")
+}
+
+model Child {
+  id          String   @id @default(cuid())
+  name        String
+  avatar      String   @default("bear") // avatar identifier
+  pin         String?  // optional 4-digit PIN for child login
+  starBalance Int      @default(0) @map("star_balance")
+  parentId    String   @map("parent_id") // created by
+  familyId    String   @map("family_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  parent            User               @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  family            Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  choreAssignments  ChoreAssignment[]
+  starTransactions  StarTransaction[]
+  rewardRedemptions RewardRedemption[]
+
+  @@map("children")
+}
+
+model Chore {
+  id            String   @id @default(cuid())
+  title         String
+  description   String   @default("")
+  icon          String   @default("sparkles") // icon identifier
+  starValue     Int      @default(1) @map("star_value")
+  recurringType String   @default("none") @map("recurring_type") // "none", "daily", "weekly"
+  recurringDays String   @default("") @map("recurring_days") // comma-separated: "mon,tue,wed"
+  isShared      Boolean  @default(false) @map("is_shared")
+  isActive      Boolean  @default(true) @map("is_active")
+  parentId      String   @map("parent_id") // created by
+  familyId      String   @map("family_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  parent      User              @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  family      Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  assignments ChoreAssignment[]
+
+  @@map("chores")
+}
+
+model ChoreAssignment {
+  id          String    @id @default(cuid())
+  choreId     String    @map("chore_id")
+  childId     String    @map("child_id")
+  dueDate     DateTime  @map("due_date")
+  status      String    @default("pending") // "pending", "completed", "approved"
+  completedAt DateTime? @map("completed_at")
+  approvedAt  DateTime? @map("approved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  chore Chore @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("chore_assignments")
+}
+
+model StarTransaction {
+  id          String   @id @default(cuid())
+  childId     String   @map("child_id")
+  amount      Int      // positive = earned/adjusted up, negative = spent/adjusted down
+  type        String   // "earned", "spent", "adjusted"
+  description String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("star_transactions")
+}
+
+model Reward {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("")
+  icon        String   @default("gift") // icon identifier
+  starCost    Int      @map("star_cost")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  parentId    String   @map("parent_id") // created by
+  familyId    String   @map("family_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  parent      User               @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  family      Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  redemptions RewardRedemption[]
+
+  @@map("rewards")
+}
+
+model RewardRedemption {
+  id         String   @id @default(cuid())
+  rewardId   String   @map("reward_id")
+  childId    String   @map("child_id")
+  starsSpent Int      @map("stars_spent")
+  redeemedAt DateTime @default(now()) @map("redeemed_at")
+
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  child  Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("reward_redemptions")
+}
