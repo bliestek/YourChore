@@ -57,7 +57,43 @@ Visit `http://localhost:3000`
 | Emma (child) | PIN: 1234 | - |
 | Jack (child) | No PIN | - |
 
-## Docker Deployment
+## Screenshots
+
+### Landing & Account Setup
+<p align="center">
+  <img src="screenshots/landing.png" width="300">
+  <img src="screenshots/register-account.png" width="300">
+  <img src="screenshots/parent-login.png" width="300">
+  <img src="screenshots/child-login.png" width="300">
+    <img src="screenshots/join-family.png" width="400">
+</p>
+
+### Parent Dashboard
+<p align="center">
+  <img src="screenshots/dashboard.png" width="500">
+</p>
+
+<p align="center">
+  <img src="screenshots/chores-overview.png" width="500">
+</p>
+
+### Managing Chores & Rewards
+<p align="center">
+  <img src="screenshots/add-chore.png" width="300">
+  <img src="screenshots/add-reward.png" width="300">
+  <img src="screenshots/add-stars.png" width="300">
+</p>
+
+### Kid Experience
+<p align="center">
+  <img src="screenshots/kid-view-chores.png" width="250">
+  <img src="screenshots/kid-view-chores-complete.png" width="250">
+  <img src="screenshots/kid-view-rewards.png" width="250">
+  <img src="screenshots/kid-view-reward-claimed.png" width="250">
+  <img src="screenshots/kid-view-star-jar.png" width="250">
+</p>
+
+---
 
 ### Docker Compose
 
