@@ -4,7 +4,7 @@
 
 services:
   yourchore:
-    image: yourchore:latest
+    image: ghcr.io/bliestek/yourchore:latest
     container_name: yourchore
     restart: unless-stopped
     ports:
