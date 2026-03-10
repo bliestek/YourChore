@@ -65,7 +65,7 @@ Visit `http://localhost:3000`
   <img src="screenshots/register-account.png" width="300">
   <img src="screenshots/parent-login.png" width="300">
   <img src="screenshots/child-login.png" width="300">
-    <img src="screenshots/join-family.png" width="400">
+  <img src="screenshots/join-family.png" width="300">
 </p>
 
 ### Parent Dashboard
