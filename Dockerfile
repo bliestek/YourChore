@@ -48,9 +48,8 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
 
-# Copy prisma CLI for db push at startup
+# Copy prisma CLI for db push at startup (includes WASM files in .bin/)
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 # Copy seed script dependencies
 COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
