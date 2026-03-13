@@ -44,6 +44,8 @@ export default function SettingsPage() {
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joiningFamily, setJoiningFamily] = useState(false);
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
@@ -83,7 +85,26 @@ export default function SettingsPage() {
       document.documentElement.classList.remove("dark");
     }
 
-    toast.success(newValue ? "Dark mode enabled" : "Dark mode disabled");
+    // Persist to database and set cookie for pre-hydration loading
+    const { error } = await api("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ darkMode: newValue }),
+    });
+
+    if (error) {
+      // Revert on failure
+      setDarkMode(!newValue);
+      if (!newValue) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      toast.error("Failed to save dark mode preference");
+    } else {
+      // Also set cookie client-side for immediate effect on other pages
+      document.cookie = `darkMode=${newValue ? "1" : "0"};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;
+      toast.success(newValue ? "Dark mode enabled" : "Dark mode disabled");
+    }
   }
 
   async function toggleAutoGenerate() {
@@ -156,6 +177,33 @@ export default function SettingsPage() {
       setCopied(true);
       toast.success("Invite code copied!");
       setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  async function handleJoinFamily(e: React.FormEvent) {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    setJoiningFamily(true);
+
+    const { data, error } = await api<{ message: string; familyName: string }>(
+      "/api/family/join",
+      {
+        method: "POST",
+        body: JSON.stringify({ inviteCode: joinCode.trim() }),
+      }
+    );
+
+    setJoiningFamily(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
+    if (data) {
+      toast.success(`Joined ${data.familyName}!`);
+      setJoinCode("");
+      // Reload to refresh family data with new token
+      window.location.href = "/parent/settings";
     }
   }
 
@@ -347,6 +395,36 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
+            </div>
+            {/* Join a different family */}
+            <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 block">
+                Join a Different Family
+              </label>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
+                Enter an invite code to switch to another family
+              </p>
+              <form onSubmit={handleJoinFamily} className="flex gap-2">
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="Enter invite code"
+                  className="input flex-1 text-center font-mono font-bold tracking-widest"
+                  maxLength={8}
+                />
+                <button
+                  type="submit"
+                  disabled={joiningFamily || !joinCode.trim()}
+                  className="btn-primary text-sm px-4"
+                >
+                  {joiningFamily ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  ) : (
+                    "Join"
+                  )}
+                </button>
+              </form>
             </div>
           </div>
         </motion.div>
