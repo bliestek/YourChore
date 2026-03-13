@@ -9,7 +9,7 @@ services:
     ports:
       - "${PORT:-3000}:3000"
     environment:
-      - DATABASE_URL=file:./data/yourchore.db
+      - DATABASE_URL=file:/app/data/yourchore.db
       - JWT_SECRET=${JWT_SECRET:-change-this-to-a-random-secret-at-least-32-characters}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-YourChore}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}

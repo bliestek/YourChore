@@ -20,7 +20,7 @@ RUN mkdir -p /app/data
 
 # Generate Prisma client and build Next.js
 # NOTE: prisma db push is NOT run here — it runs at container startup via entrypoint
-ENV DATABASE_URL="file:./data/yourchore.db"
+ENV DATABASE_URL="file:/app/data/yourchore.db"
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate
 RUN npx next build
@@ -31,7 +31,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_URL="file:./data/yourchore.db"
+ENV DATABASE_URL="file:/app/data/yourchore.db"
 
 # Install OpenSSL for Prisma engine compatibility
 RUN apk add --no-cache openssl libc6-compat

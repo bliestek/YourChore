@@ -10,7 +10,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:./data/yourchore.db
+      - DATABASE_URL=file:/app/data/yourchore.db
       - JWT_SECRET=CHANGE_ME_TO_A_RANDOM_SECRET_AT_LEAST_32_CHARS
       - NEXT_PUBLIC_APP_NAME=YourChore
       - NEXT_PUBLIC_APP_URL=http://YOUR_SERVER_IP:3000

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { api } from "@/hooks/useFetch";
@@ -46,6 +46,11 @@ export default function SettingsPage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [joiningFamily, setJoiningFamily] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
@@ -204,6 +209,72 @@ export default function SettingsPage() {
       setJoinCode("");
       // Reload to refresh family data with new token
       window.location.href = "/parent/settings";
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await fetch("/api/backup/export");
+      if (!res.ok) {
+        const json = await res.json();
+        toast.error(json.error || "Export failed");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="(.+)"/);
+      a.download = match?.[1] || `yourchore-backup-${new Date().toISOString().slice(0, 10)}.db`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Backup downloaded!");
+    } catch {
+      toast.error("Failed to export database");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".db")) {
+      toast.error("Please select a .db backup file");
+      return;
+    }
+    setSelectedFile(file);
+    setShowImportConfirm(true);
+  }
+
+  async function handleImport() {
+    if (!selectedFile) return;
+    setImporting(true);
+    setShowImportConfirm(false);
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const res = await fetch("/api/backup/import", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error(json.error || "Import failed");
+        return;
+      }
+      toast.success("Database restored! Reloading...");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch {
+      toast.error("Failed to import database");
+    } finally {
+      setImporting(false);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -512,6 +583,140 @@ export default function SettingsPage() {
           )}
         </div>
       </motion.div>
+
+      {/* Database Backup */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="card"
+      >
+        <h2 className="text-lg font-display font-bold text-gray-900 dark:text-white mb-2">Database Backup</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+          Export your family data for safekeeping, or restore from a previous backup.
+        </p>
+        <div className="space-y-4">
+          {/* Export */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">Export Backup</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Download your database file</p>
+              </div>
+            </div>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="btn-primary text-sm flex items-center gap-2"
+            >
+              {exporting ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              )}
+              {exporting ? "Exporting..." : "Export"}
+            </button>
+          </div>
+
+          <div className="border-t border-gray-100 dark:border-slate-700" />
+
+          {/* Import */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">Restore Backup</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Upload a previously exported file</p>
+              </div>
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="btn-secondary text-sm flex items-center gap-2"
+            >
+              {importing ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              )}
+              {importing ? "Restoring..." : "Restore"}
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".db"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
+      </motion.div>
+
+      {/* Import confirmation modal */}
+      <AnimatePresence>
+        {showImportConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4"
+            onClick={() => { setShowImportConfirm(false); setSelectedFile(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+            >
+              <div className="text-center mb-4">
+                <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className="font-display font-bold text-lg text-gray-900 dark:text-white">
+                  Restore Database?
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  This will replace <strong>all current data</strong> with the backup file.
+                  A safety backup of your current data will be created first.
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-mono">
+                  {selectedFile?.name}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowImportConfirm(false); setSelectedFile(null); }}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleImport}
+                  className="btn-danger flex-1"
+                >
+                  Restore
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Logout */}
       <motion.div
