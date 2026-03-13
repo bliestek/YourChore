@@ -61,6 +61,7 @@ export default function ParentDashboard() {
   const [expandedChild, setExpandedChild] = useState<string | null>(null);
   const [childAssignments, setChildAssignments] = useState<Record<string, ChildAssignment[]>>({});
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -139,6 +140,29 @@ export default function ParentDashboard() {
       if (data) setStats(data);
     }
     setRemovingId(null);
+  }
+
+  async function handleApprove(assignmentId: string, childId: string) {
+    setApprovingId(assignmentId);
+    const { error } = await api(`/api/assignments/${assignmentId}/approve`, {
+      method: "POST",
+    });
+    if (error) {
+      toast.error("Failed to approve chore");
+    } else {
+      // Update local state to show approved
+      setChildAssignments((prev) => ({
+        ...prev,
+        [childId]: (prev[childId] || []).map((a) =>
+          a.id === assignmentId ? { ...a, status: "approved" } : a
+        ),
+      }));
+      toast.success("Chore approved! Stars awarded.");
+      // Refresh stats to update star counts
+      const { data } = await api<StatsData>("/api/stats");
+      if (data) setStats(data);
+    }
+    setApprovingId(null);
   }
 
   if (loading) {
@@ -288,8 +312,10 @@ export default function ParentDashboard() {
                             <div
                               key={a.id}
                               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
-                                a.status !== "pending"
+                                a.status === "approved"
                                   ? "bg-green-50 dark:bg-green-900/20"
+                                  : a.status === "completed"
+                                  ? "bg-amber-50 dark:bg-amber-900/20"
                                   : "bg-gray-50 dark:bg-slate-700/30"
                               }`}
                             >
@@ -298,8 +324,10 @@ export default function ParentDashboard() {
                               </span>
                               <span
                                 className={`flex-1 truncate ${
-                                  a.status !== "pending"
+                                  a.status === "approved"
                                     ? "line-through text-gray-400 dark:text-gray-500"
+                                    : a.status === "completed"
+                                    ? "text-amber-700 dark:text-amber-300 font-medium"
                                     : "text-gray-700 dark:text-gray-200"
                                 }`}
                               >
@@ -310,8 +338,26 @@ export default function ParentDashboard() {
                                   </span>
                                 )}
                               </span>
-                              {a.status !== "pending" ? (
+                              {a.status === "approved" ? (
                                 <span className="text-green-500 text-base">&#x2705;</span>
+                              ) : a.status === "completed" ? (
+                                <button
+                                  onClick={() => handleApprove(a.id, stat.child.id)}
+                                  disabled={approvingId === a.id}
+                                  className="px-2.5 py-1 text-xs font-bold rounded-full bg-green-500 hover:bg-green-600 text-white flex-shrink-0 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                  title="Approve this chore"
+                                >
+                                  {approvingId === a.id ? (
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+                                  ) : (
+                                    <>
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      Approve
+                                    </>
+                                  )}
+                                </button>
                               ) : (
                                 <button
                                   onClick={() => handleRemoveAssignment(a.id, stat.child.id)}

@@ -69,13 +69,6 @@ export default function ChildChoresPage() {
     if (data) {
       // Trigger celebration
       setCelebrateId(assignmentId);
-      setShowConfetti(true);
-
-      // Floating stars animation
-      setFloatingStars((prev) => [
-        ...prev,
-        { id: assignmentId, count: data.starsEarned },
-      ]);
 
       // Update the assignment status locally
       setAssignments((prev) =>
@@ -86,22 +79,41 @@ export default function ChildChoresPage() {
         )
       );
 
-      // Notify the layout about star balance update
-      window.dispatchEvent(
-        new CustomEvent("star-update", {
-          detail: { starBalance: data.starBalance },
-        })
-      );
+      if (data.starsEarned > 0) {
+        // Stars awarded immediately — full celebration
+        setShowConfetti(true);
+        setFloatingStars((prev) => [
+          ...prev,
+          { id: assignmentId, count: data.starsEarned },
+        ]);
 
-      toast.success(`Awesome! +${data.starsEarned} stars!`, {
-        icon: "\u2B50",
-        style: {
-          fontSize: "18px",
-          fontWeight: "bold",
-          background: "#FEF3C7",
-          border: "2px solid #F59E0B",
-        },
-      });
+        window.dispatchEvent(
+          new CustomEvent("star-update", {
+            detail: { starBalance: data.starBalance },
+          })
+        );
+
+        toast.success(`Awesome! +${data.starsEarned} stars!`, {
+          icon: "\u2B50",
+          style: {
+            fontSize: "18px",
+            fontWeight: "bold",
+            background: "#FEF3C7",
+            border: "2px solid #F59E0B",
+          },
+        });
+      } else {
+        // Needs parent approval — encouraging message, no confetti
+        toast.success("Great job! Waiting for parent approval.", {
+          icon: "\uD83D\uDC4D",
+          style: {
+            fontSize: "18px",
+            fontWeight: "bold",
+            background: "#EDE9FE",
+            border: "2px solid #8B5CF6",
+          },
+        });
+      }
 
       // Clean up animations after they finish
       setTimeout(() => {
@@ -323,18 +335,24 @@ export default function ChildChoresPage() {
                     <span className="font-display font-bold text-lg text-gray-400 line-through flex-1 truncate">
                       {assignment.chore.title}
                     </span>
-                    <motion.span
-                      className="text-3xl"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 10,
-                      }}
-                    >
-                      {"\u2705"}
-                    </motion.span>
+                    {assignment.status === "completed" ? (
+                      <span className="text-xs font-display font-bold text-purple-500 bg-purple-100 px-2 py-1 rounded-full flex-shrink-0">
+                        Pending approval
+                      </span>
+                    ) : (
+                      <motion.span
+                        className="text-3xl"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 10,
+                        }}
+                      >
+                        {"\u2705"}
+                      </motion.span>
+                    )}
                   </div>
                 </motion.div>
               ))}
