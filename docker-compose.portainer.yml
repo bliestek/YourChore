@@ -15,7 +15,12 @@ services:
       - NEXT_PUBLIC_APP_NAME=YourChore
       - NEXT_PUBLIC_APP_URL=http://YOUR_SERVER_IP:3000
       - REQUIRE_APPROVAL=false
-      - SEED_ON_STARTUP=true
+      ## Set to true ONLY on first deploy to load demo data, then set back to false
+      - SEED_ON_STARTUP=false
+      ## Uncomment to restore from backup (then redeploy without it):
+      # - RESTORE_BACKUP=latest
+      ## Uncomment to force destructive schema changes (NOT recommended):
+      # - FORCE_SCHEMA_PUSH=true
     volumes:
       - yourchore_data:/app/data
     healthcheck:
