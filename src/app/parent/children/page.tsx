@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { api } from "@/hooks/useFetch";
-import { getAvatarEmoji, avatars } from "@/lib/icons";
+import { getAvatarEmoji, avatars, isEmoji } from "@/lib/icons";
 
 type Child = {
   id: string;
@@ -319,6 +319,25 @@ export default function ChildrenPage() {
                           {avatar.emoji}
                         </button>
                       ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Or paste any emoji..."
+                        value={!avatars.find((a) => a.id === form.avatar) && form.avatar !== "bear" ? form.avatar : ""}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          if (val && isEmoji(val)) setForm({ ...form, avatar: val });
+                          else if (!val) setForm({ ...form, avatar: "bear" });
+                        }}
+                        className="input flex-1 text-center text-xl"
+                        maxLength={4}
+                      />
+                      {isEmoji(form.avatar) && (
+                        <span className="text-2xl p-2 bg-primary-100 dark:bg-primary-900/40 rounded-xl ring-2 ring-primary-400">
+                          {form.avatar}
+                        </span>
+                      )}
                     </div>
                   </div>
 

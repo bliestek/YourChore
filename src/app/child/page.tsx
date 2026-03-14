@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/hooks/useFetch";
-import { choreEmojis } from "@/lib/icons";
+import { choreEmojis, resolveChoreEmoji } from "@/lib/icons";
 import Confetti from "@/components/Confetti";
 import toast from "react-hot-toast";
 
@@ -239,7 +239,7 @@ export default function ChildChoresPage() {
                     className="text-5xl flex-shrink-0"
                     whileTap={{ scale: 1.3, rotate: 20 }}
                   >
-                    {choreEmojis[assignment.chore.icon] || "\u2728"}
+                    {resolveChoreEmoji(assignment.chore.icon)}
                   </motion.div>
 
                   {/* Chore info */}
@@ -330,7 +330,7 @@ export default function ChildChoresPage() {
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-3xl opacity-50">
-                      {choreEmojis[assignment.chore.icon] || "\u2728"}
+                      {resolveChoreEmoji(assignment.chore.icon)}
                     </span>
                     <span className="font-display font-bold text-lg text-gray-400 line-through flex-1 truncate">
                       {assignment.chore.title}

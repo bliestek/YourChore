@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { api } from "@/hooks/useFetch";
+import { isEmoji } from "@/lib/icons";
 
 type User = {
   id: string;
@@ -12,6 +14,7 @@ type User = {
   email: string;
   darkMode: boolean;
   role: string;
+  avatar: string;
 };
 
 type FamilyMember = {
@@ -78,6 +81,9 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchUser();
     fetchFamily();
+    const handleProfileUpdate = () => fetchUser();
+    window.addEventListener("profile-update", handleProfileUpdate);
+    return () => window.removeEventListener("profile-update", handleProfileUpdate);
   }, [fetchUser, fetchFamily]);
 
   async function toggleDarkMode() {
@@ -301,16 +307,31 @@ export default function SettingsPage() {
       >
         <h2 className="text-lg font-display font-bold text-gray-900 dark:text-white mb-4">Account</h2>
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-primary-100 dark:bg-primary-900/40 rounded-2xl flex items-center justify-center">
-              <svg className="w-7 h-7 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-primary-100 dark:bg-primary-900/40 rounded-2xl flex items-center justify-center">
+                {user?.avatar && isEmoji(user.avatar) ? (
+                  <span className="text-3xl">{user.avatar}</span>
+                ) : (
+                  <svg className="w-7 h-7 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">{user?.name}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+              </div>
+            </div>
+            <Link
+              href="/parent/profile"
+              className="btn-secondary text-sm flex items-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white">{user?.name}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
-            </div>
+              Edit Profile
+            </Link>
           </div>
         </div>
       </motion.div>

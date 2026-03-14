@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { api } from "@/hooks/useFetch";
-import { rewardEmojis } from "@/lib/icons";
+import { rewardEmojis, resolveRewardEmoji, isEmoji } from "@/lib/icons";
 
 type Reward = {
   id: string;
@@ -201,7 +201,7 @@ export default function RewardsPage() {
               {/* Content */}
               <div className="flex items-center gap-3 mb-3 pr-14">
                 <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-                  {rewardEmojis[reward.icon] || rewardEmojis.gift}
+                  {resolveRewardEmoji(reward.icon)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display font-bold text-gray-900 dark:text-white truncate">{reward.title}</h3>
@@ -333,6 +333,25 @@ export default function RewardsPage() {
                           {emoji}
                         </button>
                       ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Or paste any emoji..."
+                        value={!rewardEmojis[form.icon] && form.icon !== "gift" ? form.icon : ""}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          if (val && isEmoji(val)) setForm({ ...form, icon: val });
+                          else if (!val) setForm({ ...form, icon: "gift" });
+                        }}
+                        className="input flex-1 text-center text-xl"
+                        maxLength={4}
+                      />
+                      {isEmoji(form.icon) && (
+                        <span className="text-2xl p-2 bg-primary-100 dark:bg-primary-900/40 rounded-xl ring-2 ring-primary-400">
+                          {form.icon}
+                        </span>
+                      )}
                     </div>
                   </div>
 

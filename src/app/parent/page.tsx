@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { api } from "@/hooks/useFetch";
-import { getAvatarEmoji, choreEmojis } from "@/lib/icons";
+import { getAvatarEmoji, choreEmojis, resolveChoreEmoji } from "@/lib/icons";
 import { formatDate } from "@/lib/dates";
 
 type Child = {
@@ -320,7 +320,7 @@ export default function ParentDashboard() {
                               }`}
                             >
                               <span className="text-lg flex-shrink-0">
-                                {choreEmojis[a.chore.icon] || "\u2728"}
+                                {resolveChoreEmoji(a.chore.icon)}
                               </span>
                               <span
                                 className={`flex-1 truncate ${

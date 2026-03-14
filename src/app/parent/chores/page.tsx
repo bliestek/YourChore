@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { api } from "@/hooks/useFetch";
-import { choreEmojis, getAvatarEmoji } from "@/lib/icons";
+import { choreEmojis, getAvatarEmoji, resolveChoreEmoji, isEmoji } from "@/lib/icons";
 
 type Chore = {
   id: string;
@@ -318,7 +318,7 @@ export default function ChoresPage() {
               <div className="flex items-center gap-4">
                 {/* Icon */}
                 <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-                  {choreEmojis[chore.icon] || choreEmojis.sparkles}
+                  {resolveChoreEmoji(chore.icon)}
                 </div>
 
                 {/* Content */}
@@ -526,6 +526,25 @@ export default function ChoresPage() {
                           {emoji}
                         </button>
                       ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Or paste any emoji..."
+                        value={!choreEmojis[form.icon] && form.icon !== "sparkles" ? form.icon : ""}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          if (val && isEmoji(val)) setForm({ ...form, icon: val });
+                          else if (!val) setForm({ ...form, icon: "sparkles" });
+                        }}
+                        className="input flex-1 text-center text-xl"
+                        maxLength={4}
+                      />
+                      {isEmoji(form.icon) && (
+                        <span className="text-2xl p-2 bg-primary-100 dark:bg-primary-900/40 rounded-xl ring-2 ring-primary-400">
+                          {form.icon}
+                        </span>
+                      )}
                     </div>
                   </div>
 

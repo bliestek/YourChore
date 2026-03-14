@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { api } from "@/hooks/useFetch";
-import { rewardEmojis } from "@/lib/icons";
+import { rewardEmojis, resolveRewardEmoji } from "@/lib/icons";
 import StarJar from "@/components/StarJar";
 
 interface UserData {
@@ -171,7 +171,7 @@ export default function StarJarPage() {
               >
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-3xl">
-                    {rewardEmojis[reward.icon] || "\uD83C\uDF81"}
+                    {resolveRewardEmoji(reward.icon)}
                   </span>
                   <span className="font-display font-bold text-gray-800 flex-1 truncate">
                     {reward.title}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/hooks/useFetch";
-import { rewardEmojis } from "@/lib/icons";
+import { rewardEmojis, resolveRewardEmoji } from "@/lib/icons";
 import Confetti from "@/components/Confetti";
 import toast from "react-hot-toast";
 
@@ -178,7 +178,7 @@ export default function ChildRewardsPage() {
                   repeatDelay: 0.5,
                 }}
               >
-                {rewardEmojis[celebrateReward.icon] || "\uD83C\uDF81"}
+                {resolveRewardEmoji(celebrateReward.icon)}
               </motion.div>
 
               <motion.h2
@@ -284,7 +284,7 @@ export default function ChildRewardsPage() {
                       }
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      {rewardEmojis[reward.icon] || "\uD83C\uDF81"}
+                      {resolveRewardEmoji(reward.icon)}
                     </motion.div>
 
                     {/* Reward info */}
