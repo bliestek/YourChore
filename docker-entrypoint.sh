@@ -30,25 +30,10 @@ if [ -n "$RESTORE_BACKUP" ]; then
   fi
 fi
 
-# ── Check existing database state ────────────────────────────────
+# ── Check existing database (file-level only, no PrismaClient) ───
 if [ -f "$DB_FILE" ]; then
   DB_SIZE=$(ls -lh "$DB_FILE" | awk '{print $5}')
   echo "📂 Existing database found: $DB_FILE ($DB_SIZE)"
-
-  # Count users to verify DB has real data
-  USER_COUNT=$(node -e "
-const { PrismaClient } = require('@prisma/client');
-const p = new PrismaClient();
-p.user.count().then(c => { console.log(c); p.\$disconnect(); }).catch(() => { console.log('error'); p.\$disconnect(); });
-" 2>/dev/null || echo "error")
-
-  if [ "$USER_COUNT" != "error" ] && [ "$USER_COUNT" -gt 0 ] 2>/dev/null; then
-    echo "👥 Database has $USER_COUNT user(s) — data is intact"
-  elif [ "$USER_COUNT" = "0" ]; then
-    echo "⚠️  Database exists but has 0 users"
-  else
-    echo "⚠️  Could not read database (may need schema update)"
-  fi
 else
   echo "📂 No existing database — fresh install"
 fi
@@ -76,7 +61,7 @@ if [ -f "$DB_FILE" ]; then
   fi
 fi
 
-# ── Apply schema updates ─────────────────────────────────────────
+# ── Apply schema updates FIRST (before any PrismaClient usage) ───
 echo "📦 Applying schema updates..."
 if ! node ./node_modules/prisma/build/index.js db push --skip-generate 2>&1; then
   echo ""
@@ -100,12 +85,24 @@ if ! node ./node_modules/prisma/build/index.js db push --skip-generate 2>&1; the
 fi
 echo "✅ Schema is up to date"
 
-# ── Seed if empty and requested ──────────────────────────────────
-NEEDS_SEED=$(node -e "
+# ── Check user count (safe now — schema is current) ──────────────
+USER_COUNT=$(node -e "
 const { PrismaClient } = require('@prisma/client');
 const p = new PrismaClient();
-p.user.count().then(c => { console.log(c === 0 ? 'yes' : 'no'); p.\$disconnect(); }).catch(() => { console.log('yes'); p.\$disconnect(); });
-" 2>/dev/null || echo "yes")
+p.user.count().then(c => { console.log(c); p.\$disconnect(); }).catch(() => { console.log('error'); p.\$disconnect(); });
+" 2>/dev/null || echo "error")
+
+if [ "$USER_COUNT" != "error" ] && [ "$USER_COUNT" -gt 0 ] 2>/dev/null; then
+  echo "👥 Database has $USER_COUNT user(s) — data is intact"
+elif [ "$USER_COUNT" = "0" ]; then
+  echo "⚠️  Database exists but has 0 users"
+fi
+
+# ── Seed if empty and requested ──────────────────────────────────
+NEEDS_SEED="no"
+if [ "$USER_COUNT" = "0" ] || [ "$USER_COUNT" = "error" ]; then
+  NEEDS_SEED="yes"
+fi
 
 if [ "$NEEDS_SEED" = "yes" ] && [ "$SEED_ON_STARTUP" = "true" ]; then
   echo "🌱 Seeding database with demo data..."
