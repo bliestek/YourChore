@@ -10,6 +10,26 @@ DB_FILE="$DB_DIR/yourchore.db"
 BACKUP_DIR="$DB_DIR/backups"
 MAX_BACKUPS=5
 
+# ── Validate DATABASE_URL ────────────────────────────────────────
+# Must be an absolute path (file:/app/data/...) not relative (file:./data/...)
+# A relative path puts the DB outside the Docker volume and data is lost on restart!
+case "$DATABASE_URL" in
+  file:./*|file:../*)
+    echo ""
+    echo "❌ CRITICAL: DATABASE_URL uses a relative path: $DATABASE_URL"
+    echo "   This will cause DATA LOSS on container restart!"
+    echo ""
+    echo "   Fix your Portainer stack / docker-compose environment:"
+    echo "   Change: DATABASE_URL=file:./data/yourchore.db"
+    echo "   To:     DATABASE_URL=file:/app/data/yourchore.db"
+    echo ""
+    echo "   Auto-correcting for this session..."
+    export DATABASE_URL="file:/app/data/yourchore.db"
+    echo "   DATABASE_URL is now: $DATABASE_URL"
+    echo ""
+    ;;
+esac
+
 # ── Restore from backup if requested ──────────────────────────────
 if [ -n "$RESTORE_BACKUP" ]; then
   if [ "$RESTORE_BACKUP" = "latest" ]; then
