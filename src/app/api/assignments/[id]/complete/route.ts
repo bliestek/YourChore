@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { success, error, unauthorized, notFound } from "@/lib/api";
+import { notifyParentsInFamily } from "@/lib/push";
 
 export async function POST(
   request: NextRequest,
@@ -66,6 +67,13 @@ export async function POST(
           completedAt: new Date(),
         },
       });
+
+      // Notify parents that a chore needs approval (fire-and-forget)
+      notifyParentsInFamily(assignment.chore.familyId, {
+        title: "Chore Done! \u2705",
+        body: `${assignment.child.name} completed "${assignment.chore.title}"`,
+        url: "/parent",
+      }).catch(console.error);
     }
 
     // If shared chore, auto-complete all other pending assignments for same chore + date

@@ -7,6 +7,7 @@ import { api } from "@/hooks/useFetch";
 import { getAvatarEmoji } from "@/lib/icons";
 import toast from "react-hot-toast";
 import PinModal from "@/components/PinModal";
+import NotificationBanner from "@/components/NotificationBanner";
 
 interface ChildUser {
   id: string;
@@ -245,6 +246,7 @@ export default function ChildLayout({
       {/* Main content */}
       <main className="flex-1 overflow-y-auto pb-28 px-4 pt-4">
         <div className="max-w-lg mx-auto">
+          <NotificationBanner variant="child" />
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

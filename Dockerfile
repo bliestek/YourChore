@@ -32,6 +32,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL="file:/app/data/yourchore.db"
+ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=""
+ENV VAPID_PRIVATE_KEY=""
 
 # Install OpenSSL for Prisma engine compatibility
 RUN apk add --no-cache openssl libc6-compat
@@ -60,6 +62,25 @@ COPY --from=builder /app/node_modules/esbuild ./node_modules/esbuild
 COPY --from=builder /app/node_modules/@esbuild ./node_modules/@esbuild
 COPY --from=builder /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
+# Copy web-push for push notifications
+COPY --from=builder /app/node_modules/web-push ./node_modules/web-push
+COPY --from=builder /app/node_modules/http_ece ./node_modules/http_ece
+COPY --from=builder /app/node_modules/jwa ./node_modules/jwa
+COPY --from=builder /app/node_modules/jws ./node_modules/jws
+COPY --from=builder /app/node_modules/asn1.js ./node_modules/asn1.js
+COPY --from=builder /app/node_modules/bn.js ./node_modules/bn.js
+COPY --from=builder /app/node_modules/minimist ./node_modules/minimist
+COPY --from=builder /app/node_modules/safer-buffer ./node_modules/safer-buffer
+COPY --from=builder /app/node_modules/safe-buffer ./node_modules/safe-buffer
+COPY --from=builder /app/node_modules/buffer-equal-constant-time ./node_modules/buffer-equal-constant-time
+COPY --from=builder /app/node_modules/ecdsa-sig-formatter ./node_modules/ecdsa-sig-formatter
+COPY --from=builder /app/node_modules/https-proxy-agent ./node_modules/https-proxy-agent
+COPY --from=builder /app/node_modules/agent-base ./node_modules/agent-base
+COPY --from=builder /app/node_modules/debug ./node_modules/debug
+COPY --from=builder /app/node_modules/inherits ./node_modules/inherits
+COPY --from=builder /app/node_modules/minimalistic-assert ./node_modules/minimalistic-assert
+COPY --from=builder /app/node_modules/ms ./node_modules/ms
 
 # Copy entrypoint script
 COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh

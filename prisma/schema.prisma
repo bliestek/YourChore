@@ -158,3 +158,16 @@ model RewardRedemption {
 
   @@map("reward_redemptions")
 }
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  role      String   // "parent" or "child"
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([endpoint])
+  @@map("push_subscriptions")
+}

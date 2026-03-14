@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getSessionFromRequest, requireParent } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { success, error, unauthorized, notFound } from "@/lib/api";
+import { notifyChild } from "@/lib/push";
 
 export async function POST(
   request: NextRequest,
@@ -48,6 +49,13 @@ export async function POST(
         },
       }),
     ]);
+
+    // Notify child that their chore was approved (fire-and-forget)
+    notifyChild(assignment.childId, {
+      title: "Stars Earned! \u2B50",
+      body: `You earned ${assignment.chore.starValue} star${assignment.chore.starValue === 1 ? "" : "s"} for "${assignment.chore.title}"!`,
+      url: "/child",
+    }).catch(console.error);
 
     return success({ message: "Chore approved and stars awarded" });
   } catch (e) {

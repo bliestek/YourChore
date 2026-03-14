@@ -33,6 +33,49 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Push: show notification when received
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    const title = data.title || "YourChore";
+    const options = {
+      body: data.body || "",
+      icon: data.icon || "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: data.url || "/" },
+      vibrate: [200, 100, 200],
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (err) {
+    console.error("Push event error:", err);
+  }
+});
+
+// Notification click: open or focus the app
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      // If the app is already open, focus it and navigate
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin)) {
+          client.focus();
+          client.navigate(url);
+          return;
+        }
+      }
+      // Otherwise open a new window
+      return clients.openWindow(url);
+    })
+  );
+});
+
 // Fetch: network-first with cache fallback
 self.addEventListener("fetch", (event) => {
   const { request } = event;
