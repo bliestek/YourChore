@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // Apply schema updates to the restored DB (it may be from an older version)
     try {
-      execSync("npx prisma db push --skip-generate --accept-data-loss 2>&1", {
+      execSync("node ./node_modules/prisma/build/index.js db push --skip-generate --accept-data-loss 2>&1", {
         timeout: 30000,
         env: { ...process.env, DATABASE_URL: `file:${dbPath}` },
       });
