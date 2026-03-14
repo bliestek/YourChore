@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { execSync } from "child_process";
 import { NextRequest } from "next/server";
 import { getSessionFromRequest, requireParent } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -51,6 +52,17 @@ export async function POST(request: NextRequest) {
     // Remove stale WAL/SHM files from previous DB
     try { fs.unlinkSync(dbPath + "-wal"); } catch { /* may not exist */ }
     try { fs.unlinkSync(dbPath + "-shm"); } catch { /* may not exist */ }
+
+    // Apply schema updates to the restored DB (it may be from an older version)
+    try {
+      execSync("npx prisma db push --skip-generate --accept-data-loss 2>&1", {
+        timeout: 30000,
+        env: { ...process.env, DATABASE_URL: `file:${dbPath}` },
+      });
+    } catch (pushErr) {
+      console.error("Schema push after import failed:", pushErr);
+      // Non-fatal — try to continue anyway
+    }
 
     // Reconnect and validate
     await prisma.$connect();
