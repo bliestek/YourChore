@@ -121,8 +121,8 @@ Copy the contents of `docker-compose.yml` into a new Portainer stack. Set these 
 | `NEXT_PUBLIC_APP_NAME` | No | YourChore | App display name |
 | `NEXT_PUBLIC_APP_URL` | No | http://localhost:3000 | Public URL of the app |
 | `SEED_ON_STARTUP` | No | false | Seed the demo data on startup |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEYL` | No | *CUSTOM* | Public VAPID key for notifications |
-| `VAPID_PRIVATE_KEY` | No | *CUSTOM* | Private VAPID key for notifications |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEYL` | No | - | Public VAPID key for notifications |
+| `VAPID_PRIVATE_KEY` | No | - | Private VAPID key for notifications |
 | `RESTORE_BACKUP` | No | latest | Restore from last backup |
 
 Data is persisted in the `yourchore_data` Docker volume.
