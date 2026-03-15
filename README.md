@@ -4,7 +4,7 @@ A family chore and reward system where children complete chores, earn stars, and
 
 ## Features
 
-### For Kids (ages 4-12)
+### For Kids (ages 3-16)
 - See today's chores as big, colourful cards
 - Tap "Done!" to complete chores and earn stars
 - Watch your **Star Jar** fill up with golden stars
